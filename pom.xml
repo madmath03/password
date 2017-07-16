@@ -279,7 +279,7 @@
 						<useReleaseProfile>false</useReleaseProfile>
 						<releaseProfiles>release-profile</releaseProfiles>
 						<autoVersionSubmodules>true</autoVersionSubmodules>
-						<arguments>-Dmaven.test.skip=true</arguments>
+						<arguments>-Dmaven.test.skip=true -Dmaven.skip.deploy=true</arguments>
 						<preparationGoals>clean validate</preparationGoals>
 						<goals>deploy</goals>
 					</configuration>
@@ -389,9 +389,6 @@
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
-			<properties>
-				<maven.deploy.skip>true</maven.deploy.skip>
-			</properties>
 			<build>
 				<plugins>
 					<plugin>
