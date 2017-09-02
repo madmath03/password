@@ -1,5 +1,6 @@
 # Java Passwords
 
+[![Coverage Status](https://coveralls.io/repos/github/madmath03/password/badge.svg?branch=master)](https://coveralls.io/github/madmath03/password?branch=master)
 [![Build
 Status](https://secure.travis-ci.org/madmath03/password.png)](https://travis-ci.org/madmath03/password)
 
