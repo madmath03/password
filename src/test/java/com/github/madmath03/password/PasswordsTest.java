@@ -25,6 +25,8 @@ public class PasswordsTest {
 
   private Matcher patternMatcher;
 
+  private Passwords manager;
+
   /**
    * Set the test case before loading the test class.
    * 
@@ -51,7 +53,9 @@ public class PasswordsTest {
    * @throws java.lang.Exception if anything wrong happens during setup.
    */
   @Before
-  public void setUp() throws Exception {}
+  public void setUp() throws Exception {
+    this.manager = Passwords.getManager();
+  }
 
   /**
    * Tear down the test case setup after leaving the test instance.
@@ -196,15 +200,15 @@ public class PasswordsTest {
    */
   @Test
   public void testGenerateRandomPassword() {
-    final String randomPassword = Passwords.generateRandomPassword();
+    final char[] randomPassword = Passwords.generateRandomPassword();
 
-    org.junit.Assert.assertTrue("Random password is not null",
-        randomPassword != null);
+    org.junit.Assert.assertNotNull("Random password is not null",
+        randomPassword);
 
     org.junit.Assert.assertTrue("Random password is not empty",
-        randomPassword.length() > 0);
+        randomPassword.length > 0);
 
-    this.patternMatcher = pattern.matcher(randomPassword);
+    this.patternMatcher = pattern.matcher(new String(randomPassword));
     org.junit.Assert.assertTrue("Random password is human readable",
         this.patternMatcher.matches());
   }
@@ -221,18 +225,18 @@ public class PasswordsTest {
     Passwords manager = Passwords.getManager();
 
     final int size = new Random().nextInt(63) + 1;
-    final String randomPassword = manager.generateRandomPassword(size);
+    final char[] randomPassword = manager.generateRandomPassword(size);
 
     org.junit.Assert.assertTrue("Random password is not null",
         randomPassword != null);
 
     org.junit.Assert.assertTrue("Random password is not empty",
-        randomPassword.length() > 0);
+        randomPassword.length > 0);
 
     org.junit.Assert.assertTrue("Random password has the proper size",
-        randomPassword.length() == size);
+        randomPassword.length == size);
 
-    this.patternMatcher = pattern.matcher(randomPassword);
+    this.patternMatcher = pattern.matcher(new String(randomPassword));
     org.junit.Assert.assertTrue("Random password is human readable",
         this.patternMatcher.matches());
   }
@@ -397,11 +401,74 @@ public class PasswordsTest {
 
   /**
    * Test method for
+   * {@link com.github.madmath03.password.Passwords#isExpectedPassword(CharSequence, String)}.
+   * 
+   * <p>
+   * Test if the given password match the hashed value. Test side effect: the password is destroyed
+   * (the {@code char[]} is filled with zeros).
+   * </p>
+   */
+  @Test
+  public void testIsExpectedPasswordCharSequenceString() {
+    final String password = "password";
+    final String passwordCopy = new String(password);
+    final String differentSizePassword = "test";
+    final String differentValuePassword = "drowssap";
+    final String differentCasePassword = "Password";
+    final int passwordSize = password.length();
+
+    final String hash = Passwords.getHash(password.toCharArray().clone());
+
+    final boolean passwordMatches =
+        Passwords.isExpectedPassword(passwordCopy, hash);
+
+    org.junit.Assert.assertTrue("Passwords match", passwordMatches);
+
+    org.junit.Assert.assertTrue("Password size has not changed",
+        password.length() == passwordSize);
+
+    final boolean passwordSizeNotMatches =
+        Passwords.isExpectedPassword(differentSizePassword, hash);
+
+    org.junit.Assert.assertFalse("Passwords size do not match",
+        passwordSizeNotMatches);
+
+    final boolean passwordValuesNotMatches =
+        Passwords.isExpectedPassword(differentValuePassword, hash);
+
+    org.junit.Assert.assertFalse("Passwords values do not match",
+        passwordValuesNotMatches);
+
+    final boolean passwordCaseNotMatches =
+        Passwords.isExpectedPassword(differentCasePassword, hash);
+
+    org.junit.Assert.assertFalse("Passwords case do not match",
+        passwordCaseNotMatches);
+
+    try {
+      Passwords.isExpectedPassword(password, "");
+      org.junit.Assert.fail("Passwords format do not match");
+    } catch (IllegalArgumentException e) {
+      org.junit.Assert.assertTrue("Passwords format do not match", e != null);
+    }
+
+    try {
+      Passwords.isExpectedPassword(password, null);
+      org.junit.Assert.fail("Passwords hash that are null should fail");
+    } catch (IllegalArgumentException e) {
+      org.junit.Assert.assertTrue("Passwords hash null are not allowed",
+          e != null);
+    }
+
+  }
+
+  /**
+   * Test method for
    * {@link com.github.madmath03.password.Passwords#isExpectedPassword(char[], java.lang.String)}.
    * 
    * <p>
-   * Test if the given password and salt match the hashed value. Test side effect: the password is
-   * destroyed (the {@code char[]} is filled with zeros).
+   * Test if the given password match the hashed value. Test side effect: the password is destroyed
+   * (the {@code char[]} is filled with zeros).
    * </p>
    */
   @Test
@@ -464,6 +531,13 @@ public class PasswordsTest {
           e != null);
     }
 
+    try {
+      Passwords.isExpectedPassword((char[]) null, null);
+      org.junit.Assert.fail("Passwords that are null should fail");
+    } catch (IllegalArgumentException e) {
+      org.junit.Assert.assertTrue("Passwords null are not allowed", e != null);
+    }
+
   }
 
   /**
@@ -477,8 +551,6 @@ public class PasswordsTest {
    */
   @Test
   public void testIsExpectedPasswordCharArrayByteArrayByteArray() {
-    Passwords manager = Passwords.getManager();
-
     final byte[] salt = manager.getNextSalt();
     final char[] password = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
     final char[] passwordCopy = password.clone();
@@ -526,11 +598,18 @@ public class PasswordsTest {
     try {
       manager.isExpectedPassword(password, salt, null);
       org.junit.Assert.fail("Passwords hash that are null should fail");
-    } catch (IllegalArgumentException e) {
+    } catch (NullPointerException e) {
       org.junit.Assert.assertTrue("Passwords hash null are not allowed",
           e != null);
     }
 
+    try {
+      manager.isExpectedPassword(null, salt, null);
+      org.junit.Assert.fail("Passwords hash that are null should fail");
+    } catch (NullPointerException e) {
+      org.junit.Assert.assertTrue("Passwords hash null are not allowed",
+          e != null);
+    }
 
     final boolean passwordHashSizeNotMatches =
         manager.isExpectedPassword(password, salt, new byte[] {});
@@ -538,6 +617,17 @@ public class PasswordsTest {
     org.junit.Assert.assertFalse("Passwords hash size do not match",
         passwordHashSizeNotMatches);
 
+  }
+
+  @Test
+  public void testConvertToCharArray() {
+    final String rawPassword = "password";
+    final char[] expectedPassword = {'p', 'a', 's', 's', 'w', 'o', 'r', 'd'};
+
+    final char[] password = Passwords.convertToCharArray(rawPassword);
+
+    org.junit.Assert.assertNotNull(password);
+    org.junit.Assert.assertArrayEquals(expectedPassword, password);
   }
 
 }

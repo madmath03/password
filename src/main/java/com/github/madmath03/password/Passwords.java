@@ -213,7 +213,7 @@ public final class Passwords {
    *
    * @return a random password.
    */
-  public static String generateRandomPassword() {
+  public static char[] generateRandomPassword() {
     final Passwords passwords = Passwords.getManager();
 
     return passwords.generateRandomPassword(DEFAULT_COST);
@@ -226,21 +226,21 @@ public final class Passwords {
    *
    * @return a random password.
    */
-  public String generateRandomPassword(final int length) {
-    final StringBuilder password = new StringBuilder(length);
+  public char[] generateRandomPassword(final int length) {
+    final char[] password = new char[length];
 
     for (int i = 0; i < length; i++) {
-      final int character = random.nextInt(62);
-      if (character <= 9) {
-        password.append(String.valueOf(character));
-      } else if (character < 36) {
-        password.append((char) ('a' + character - 10));
+      final int characterIndex = random.nextInt(62);
+      if (characterIndex <= 9) {
+        password[i] = (char) ('0' + characterIndex);
+      } else if (characterIndex < 36) {
+        password[i] = (char) ('a' + characterIndex - 10);
       } else {
-        password.append((char) ('A' + character - 36));
+        password[i] = (char) ('A' + characterIndex - 36);
       }
     }
 
-    return password.toString();
+    return password;
   }
 
 
@@ -259,6 +259,8 @@ public final class Passwords {
    * @param password the password to be hashed.
    *
    * @return the hashed password with a pinch of salt as a String.
+   * 
+   * @throws NullPointerException if the password is null.
    */
   public static String getHash(final char... password) {
     final Passwords passwords = Passwords.getManager();
@@ -284,6 +286,8 @@ public final class Passwords {
    *        method.
    *
    * @return the hashed password with a pinch of salt as a String.
+   * 
+   * @throws NullPointerException if the password or salt is null.
    */
   public String getHash(final char[] password, final byte[] salt) {
     final byte[] hash = this.hash(password, salt);
@@ -312,6 +316,8 @@ public final class Passwords {
    * @param password the password to be hashed.
    *
    * @return the hashed password with a pinch of salt.
+   * 
+   * @throws NullPointerException if the password is null.
    */
   public static byte[] hash(final char... password) {
     final Passwords passwords = Passwords.getManager();
@@ -338,6 +344,9 @@ public final class Passwords {
    *        method.
    *
    * @return the hashed password with a pinch of salt.
+   * 
+   * @throws NullPointerException if the password or expected hash is null.
+   * @throws IllegalArgumentException if {@code salt} is empty, i.e. 0-length.
    */
   public byte[] hash(final char[] password, final byte[] salt) {
     final PBEKeySpec spec =
@@ -360,28 +369,58 @@ public final class Passwords {
 
 
   /**
-   * Returns {@code true} if the given password and salt match the hashed value, {@code false}
-   * otherwise.
+   * Returns {@code true} if the given password match the hashed value, {@code false} otherwise.
+   * 
+   * <p>
+   * Warning: it is not recommended to pass the raw password as {@code String} as it will be stored
+   * in the JVM strings pool.
+   * </p>
+   *
+   * @param rawPassword the raw password to check.
+   * @param expectedHash the expected hashed value of the password
+   *
+   * @return {@code true} if the given password match the hashed value, {@code false} otherwise.
+   * 
+   * @throws NullPointerException if the raw password is null.
+   * @throws IllegalArgumentException if the expected hash has a wrong format.
+   */
+  public static boolean isExpectedPassword(final CharSequence rawPassword,
+      final String expectedHash) {
+    final char[] password = convertToCharArray(rawPassword);
+
+    return isExpectedPassword(password, expectedHash);
+  }
+
+  /**
+   * Returns {@code true} if the given password match the hashed value, {@code false} otherwise.
    * 
    * <p>
    * Note - side effect: the password is destroyed (the {@code char[]} is filled with zeros).
    * </p>
    *
-   * @param password the password to check.
-   * @param expectedHash the expected hashed value of the password
+   * @param password the password to check. @param expectedHash the expected hashed value of the
+   *        password
    *
-   * @return {@code true} if the given password and salt match the hashed value, {@code false}
-   *         otherwise.
+   * @return {@code true} if the given password match the hashed value, {@code false} otherwise.
+   * 
+   * @throws IllegalArgumentException if the password is null, or the expected hash is null or has a
+   *         wrong format.
    */
   public static boolean isExpectedPassword(final char[] password,
       final String expectedHash) {
+    if (password == null) {
+      throw new IllegalArgumentException("The password cannot be null");
+    }
+
     if (expectedHash == null) {
-      throw new IllegalArgumentException("Invalid hash");
+      throw new IllegalArgumentException("The expected hash cannot be null");
     }
 
     final Matcher m = PATTERN.matcher(expectedHash);
     if (!m.matches()) {
-      throw new IllegalArgumentException("Invalid hash format");
+      throw new IllegalArgumentException(
+          "Invalid hash format: expected format was '" + PATTERN.pattern()
+              + "'");
     }
 
     final int cost = Integer.parseInt(m.group(1));
@@ -409,13 +448,11 @@ public final class Passwords {
    *
    * @return {@code true} if the given password and salt match the hashed value, {@code false}
    *         otherwise.
+   * 
+   * @throws NullPointerException if the password or expected hash is null.
    */
   public boolean isExpectedPassword(final char[] password, final byte[] salt,
       final byte[] expectedHash) {
-    if (expectedHash == null) {
-      throw new IllegalArgumentException("Invalid hash");
-    }
-
     boolean passwordsMatch = true;
 
     final byte[] pwdHash = this.hash(password, salt);
@@ -438,4 +475,24 @@ public final class Passwords {
 
     return passwordsMatch;
   }
+
+  /**
+   * Convert a char sequence to a char Array.
+   * 
+   * @param rawPassword the raw password as a char sequence.
+   * 
+   * @return a char array.
+   * 
+   * @throws NullPointerException if the raw password is null.
+   */
+  public static char[] convertToCharArray(final CharSequence rawPassword) {
+    final char[] password = new char[rawPassword.length()];
+
+    for (int i = 0; i < password.length; i++) {
+      password[i] = rawPassword.charAt(i);
+    }
+
+    return password;
+  }
+
 }
