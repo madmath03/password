@@ -3,7 +3,7 @@
 
 	<groupId>com.github.madmath03</groupId>
 	<artifactId>password</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.5-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<description>A simple utility class to hash passwords and check passwords VS hashed values.</description>
 
@@ -22,7 +22,7 @@
 		<url>https://github.com/madmath03/password</url>
 		<connection>scm:git:ssh://git@github.com/madmath03/password.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/madmath03/password.git</developerConnection>
-		<tag>password-1.1.4</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<issueManagement>
