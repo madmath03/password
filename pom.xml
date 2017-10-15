@@ -65,7 +65,7 @@
 		<!-- Test & Verify properties -->
 		<junit.version>4.12</junit.version>
 		<maven.surefire.version>2.15</maven.surefire.version>
-		<org.codehaus.mojo.version>1.7</org.codehaus.mojo.version>
+		<build-helper-maven-plugin.version>1.10</build-helper-maven-plugin.version>
 		<maven.failsafe.version>2.15</maven.failsafe.version>
 
 		<skip.integration.tests>true</skip.integration.tests>
@@ -99,6 +99,7 @@
 		<sonar.jacoco.reportPath>${jacoco.ut.execution.data.file}</sonar.jacoco.reportPath>
 		<sonar.jacoco.itReportPath>${jacoco.it.execution.data.file}</sonar.jacoco.itReportPath>
 		<maven.site.version>3.6</maven.site.version>
+		<maven.project.info.reports.plugin.version>2.2</maven.project.info.reports.plugin.version>
 	</properties>
 
 	<dependencies>
@@ -180,7 +181,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>build-helper-maven-plugin</artifactId>
-				<version>${org.codehaus.mojo.version}</version>
+				<version>${build-helper-maven-plugin.version}</version>
 				<executions>
 					<!-- States that the plugin's add-test-source goal is executed at generate-test-sources 
 						phase. -->
@@ -366,6 +367,11 @@
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>${maven.project.info.reports.plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<version>${maven.release.version}</version>
 					<configuration>
@@ -502,6 +508,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
+						<version>${maven.surefire.version}</version>
 
 						<configuration>
 							<properties>
@@ -547,6 +554,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
+						<version>${maven.surefire.version}</version>
 
 						<configuration>
 							<properties>
