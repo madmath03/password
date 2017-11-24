@@ -2,6 +2,7 @@
 
 [![Build
 Status](https://secure.travis-ci.org/madmath03/password.png)](https://travis-ci.org/madmath03/password)
+[![codecov](https://codecov.io/gh/madmath03/password/branch/master/graph/badge.svg)](https://codecov.io/gh/madmath03/password)
 
 A simple utility class to hash passwords and check passwords VS hashed values.
 
